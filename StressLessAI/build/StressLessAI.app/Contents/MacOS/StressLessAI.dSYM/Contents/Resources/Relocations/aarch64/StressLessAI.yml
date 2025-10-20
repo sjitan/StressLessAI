@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/samijitan/StressLessAI/build/StressLessAI.app/Contents/MacOS/StressLessAI'
+relocations:     []
+...
