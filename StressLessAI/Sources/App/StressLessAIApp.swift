@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import os.log
 
 @main
 struct StressLessAIApp: App {
@@ -12,12 +13,34 @@ struct StressLessAIApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ note: Notification) {
+        Logger.log("Application finished launching.")
+
+        // Ensure the app can draw over other apps
         NSApp.setActivationPolicy(.accessory)
+        Logger.log("Activation policy set to .accessory.")
+
         NotificationsManager.shared.requestAuth()
-        CameraPermission.request { _ in
+        Logger.log("Requested notification authorization.")
+
+        CameraPermission.request { granted in
             DispatchQueue.main.async {
-                CameraManager.shared.start()
-                WindowLauncher.open(.telemetry)
+                if granted {
+                    Logger.log("Camera permission granted.")
+                    CameraManager.shared.start()
+                    Logger.log("Camera manager started.")
+                    WindowLauncher.open(.telemetry)
+                    Logger.log("Telemetry window opened.")
+                } else {
+                    Logger.log("Camera permission denied.", level: .error)
+                    // Optionally, show an alert to the user
+                    let alert = NSAlert()
+                    alert.messageText = "Camera Permission Required"
+                    alert.informativeText = "StressLessAI needs access to your camera to function. Please grant permission in System Settings > Privacy & Security > Camera."
+                    alert.alertStyle = .critical
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                    NSApp.terminate(nil)
+                }
             }
         }
     }

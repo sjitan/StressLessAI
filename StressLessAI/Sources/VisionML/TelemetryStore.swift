@@ -27,8 +27,7 @@ final class TelemetryStore: ObservableObject {
         samples.append(m)
         Task {
             await DataLayer.shared.insert(telemetry: m)
-            let recentSamples = await DataLayer.shared.fetchRecentTelemetry(limit: 10)
-            if await PredictionEngine.shared.analyze(telemetry: recentSamples) {
+            if await PredictionEngine.shared.process(latestStress: m.stress) {
                 NotificationsManager.shared.notifyRisingStress()
             }
         }
