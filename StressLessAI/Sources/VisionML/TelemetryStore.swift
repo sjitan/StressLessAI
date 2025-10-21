@@ -25,6 +25,9 @@ final class TelemetryStore: ObservableObject {
         if sessionStart == nil { sessionStart = Date(); firstTS = m.ts }
         latest = m
         samples.append(m)
+        Task {
+            await DataLayer.shared.insert(telemetry: m)
+        }
         let cutoff = m.ts - 600
         if let i = samples.firstIndex(where: { $0.ts >= cutoff }), i > 0 { samples.removeFirst(i) }
     }

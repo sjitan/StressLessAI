@@ -4,6 +4,7 @@ import SwiftUI
 enum WindowKind { case telemetry, dashboard }
 
 enum WindowLauncher {
+    @MainActor
     static func open(_ kind: WindowKind) {
         let view: any View = {
             switch kind {
