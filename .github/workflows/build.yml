@@ -1,0 +1,29 @@
+name: Build StressLessAI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check Swift version
+      run: swift --version
+
+    - name: Build application
+      run: |
+        chmod +x StressLessAI/build.sh
+        ./StressLessAI/build.sh
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: StressLessAI.app
+        path: build/StressLessAI.app
