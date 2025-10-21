@@ -13,4 +13,22 @@ final class NotificationsManager {
         let req = UNNotificationRequest(identifier: "StressLessAI.break", content: c, trigger: r)
         UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
     }
+
+    func notifyRisingStress() {
+        let c = UNMutableNotificationContent()
+        c.title = "Rising Stress Detected"
+        c.body = "Your stress levels are rising. Take a moment to refocus and breathe."
+        let r = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let req = UNNotificationRequest(identifier: "StressLessAI.rising", content: c, trigger: r)
+        UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
+    }
+
+    func notifySessionRecommendation(recommendation: String) {
+        let c = UNMutableNotificationContent()
+        c.title = "Session Report"
+        c.body = recommendation
+        let r = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let req = UNNotificationRequest(identifier: "StressLessAI.recommendation", content: c, trigger: r)
+        UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
+    }
 }

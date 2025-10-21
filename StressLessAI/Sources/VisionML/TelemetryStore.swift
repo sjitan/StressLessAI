@@ -27,6 +27,10 @@ final class TelemetryStore: ObservableObject {
         samples.append(m)
         Task {
             await DataLayer.shared.insert(telemetry: m)
+            let recentSamples = await DataLayer.shared.fetchRecentTelemetry(limit: 10)
+            if await PredictionEngine.shared.analyze(telemetry: recentSamples) {
+                NotificationsManager.shared.notifyRisingStress()
+            }
         }
         let cutoff = m.ts - 600
         if let i = samples.firstIndex(where: { $0.ts >= cutoff }), i > 0 { samples.removeFirst(i) }

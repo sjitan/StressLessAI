@@ -59,7 +59,16 @@ final class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
             }
         }
     }
-    func stop(){ if session.isRunning { session.stopRunning() } }
+    func stop() {
+        if session.isRunning {
+            session.stopRunning()
+            Task {
+                let allSamples = await DataLayer.shared.fetchRecentTelemetry(limit: 1000) // a reasonable limit for a session
+                let recommendation = await PredictionEngine.shared.generateRecommendation(telemetry: allSamples)
+                NotificationsManager.shared.notifySessionRecommendation(recommendation: recommendation)
+            }
+        }
+    }
 
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sb: CMSampleBuffer, from: AVCaptureConnection) {
         guard let pb = CMSampleBufferGetImageBuffer(sb) else { return }

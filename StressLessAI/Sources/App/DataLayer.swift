@@ -83,4 +83,34 @@ actor DataLayer {
         }
         sqlite3_finalize(insertStatement)
     }
+
+    func fetchRecentTelemetry(limit: Int) -> [FaceTelemetry] {
+        let queryStatementString = "SELECT * FROM FaceTelemetry ORDER BY ts DESC LIMIT ?;"
+        var queryStatement: OpaquePointer?
+        var telemetryData: [FaceTelemetry] = []
+
+        if sqlite3_prepare_v2(db, queryStatementString, -1, &queryStatement, nil) == SQLITE_OK {
+            sqlite3_bind_int(queryStatement, 1, Int32(limit))
+            while sqlite3_step(queryStatement) == SQLITE_ROW {
+                let ts = sqlite3_column_double(queryStatement, 0)
+                let blinkPM = sqlite3_column_double(queryStatement, 1)
+                let mouthOpen = sqlite3_column_double(queryStatement, 2)
+                let jitter = sqlite3_column_double(queryStatement, 3)
+                let stress = sqlite3_column_double(queryStatement, 4)
+                let box_x = sqlite3_column_double(queryStatement, 5)
+                let box_y = sqlite3_column_double(queryStatement, 6)
+                let box_width = sqlite3_column_double(queryStatement, 7)
+                let box_height = sqlite3_column_double(queryStatement, 8)
+
+                let box = CGRect(x: box_x, y: box_y, width: box_width, height: box_height)
+                let telemetry = FaceTelemetry(ts: ts, blinkPM: blinkPM, mouthOpen: mouthOpen, jitter: jitter, stress: stress, box: box)
+                telemetryData.append(telemetry)
+            }
+        } else {
+            let errmsg = String(cString: sqlite3_errmsg(db)!)
+            print("SELECT statement could not be prepared: \(errmsg)")
+        }
+        sqlite3_finalize(queryStatement)
+        return telemetryData
+    }
 }

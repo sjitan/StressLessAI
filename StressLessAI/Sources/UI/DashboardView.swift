@@ -34,18 +34,26 @@ struct DashboardView: View {
                 AxisMarks(values: [0,20,40,60,72,80,100])
             }
             .chartOverlay { proxy in
-                // threshold bands
-                Rectangle().fill(Color.green.opacity(0.10))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: proxy.plotAreaSize.height * 0.40, alignment: .bottom)
-                Rectangle().fill(Color.yellow.opacity(0.10))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: proxy.plotAreaSize.height * 0.32)
-                    .offset(y: proxy.plotAreaSize.height * -0.28)
-                Rectangle().fill(Color.red.opacity(0.10))
-                    .frame(maxWidth: .infinity)
+                VStack(spacing: 0) {
+                    ZStack {
+                        Rectangle().fill(Color.red.opacity(0.2))
+                        Text("High Stress (72–100)").font(.caption).foregroundColor(.secondary)
+                    }
                     .frame(height: proxy.plotAreaSize.height * 0.28)
-                    .offset(y: proxy.plotAreaSize.height * -0.72)
+
+                    ZStack {
+                        Rectangle().fill(Color.yellow.opacity(0.2))
+                        Text("Medium Stress (40–72)").font(.caption).foregroundColor(.secondary)
+                    }
+                    .frame(height: proxy.plotAreaSize.height * 0.32)
+
+                    ZStack {
+                        Rectangle().fill(Color.green.opacity(0.2))
+                        Text("Low Stress (0–40)").font(.caption).foregroundColor(.secondary)
+                    }
+                    .frame(height: proxy.plotAreaSize.height * 0.40)
+                }
+                .frame(width: proxy.plotAreaSize.width, height: proxy.plotAreaSize.height)
             }
             .chartXAxisLabel("Time")
             .chartYAxisLabel("Stress (0–100)")

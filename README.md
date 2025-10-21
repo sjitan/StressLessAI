@@ -5,7 +5,9 @@ StressLessAI is a macOS menu bar application that helps you monitor and manage s
 ## Key Features
 
 *   **Real-Time Stress Monitoring:** The app uses your camera to track key facial landmarks and calculates a real-time stress score.
-*   **Menu Bar Integration:** StressLessAI lives in your menu bar, providing unobtrusive, at-a-glance feedback on your current stress level.
+*   **Live Dashboard with Thresholds:** A clear, color-coded dashboard provides an at-a-glance view of your stress levels, with distinct zones for low, medium, and high stress.
+*   **Predictive Interventions:** The app's AI-powered `PredictionEngine` analyzes your stress trends in real-time. If it detects a rapidly rising stress level, it will proactively send you a notification, prompting you to take a moment to refocus.
+*   **Session-End Recommendations:** At the end of each session, the `PredictionEngine` provides a personalized, insightful summary of your stress patterns, helping you identify triggers and improve your well-being over time.
 *   **Robust Data Persistence:** The app features a professional-grade SQLite data layer that securely stores your telemetry data in the proper `Application Support` directory.
 *   **Automated Builds:** The application is built and packaged automatically using a GitHub Actions workflow, ensuring a consistent and reliable build process.
 *   **Modern & Concurrent:** The app has been updated to use modern Swift concurrency features, ensuring a smooth and responsive user experience.
@@ -31,13 +33,3 @@ To build and run StressLessAI from source, you will need Xcode 14 or later and m
     ./StressLessAI/build.sh
     ```
 3.  The `StressLessAI.app` bundle will be located in the `build` directory.
-
-## Future Development
-
-We have an exciting roadmap for StressLessAI, including:
-
-*   **Predictive Interventions:** The app will soon be able to predict rising stress levels and offer timely interventions.
-*   **Live Dashboard:** We are working on a live dashboard that will provide a more detailed view of your stress levels over time.
-*   **Session-End Recommendations:** The app will provide personalized recommendations at the end of each session.
-
-We welcome contributions from the community. If you are interested in contributing, please fork the repository and submit a pull request.
