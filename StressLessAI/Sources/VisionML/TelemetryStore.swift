@@ -8,6 +8,7 @@ struct FaceTelemetry: Identifiable {
     let blinkPM: Double
     let mouthOpen: Double
     let jitter: Double
+    let frown: Double
     let stress: Double
     let box: CGRect
 }

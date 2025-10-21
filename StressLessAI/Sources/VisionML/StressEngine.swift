@@ -2,24 +2,31 @@ import Foundation
 
 final class StressEngine {
     static let shared = StressEngine()
+
+    // --- Tunable Parameters ---
+    private struct Weights {
+        let mouthOpen: Double = 0.35
+        let blinkRate: Double = 0.15 // Reduced sensitivity
+        let jitter: Double = 0.20
+        let frown: Double = 0.30     // Increased sensitivity
+    }
+    private let weights = Weights()
+    // --------------------------
+
     private var aboveSince: TimeInterval?
     private let threshold = 72.0
     private let sustain   = 90.0
     private var lastNotifyAt: TimeInterval = 0
 
-    func score(blinkPM: Double, mouth: Double, jitter: Double) -> Double {
-        // simple weighted sum with clamp
-        let mouthWeight = 0.45
-        let blinkWeight = 0.25
-        let jitterWeight = 0.30
+    func score(blinkPM: Double, mouth: Double, jitter: Double, frown: Double) -> Double {
+        let mouthScore = mouth * weights.mouthOpen
+        let blinkScore = (min(blinkPM, 60) / 60.0 * 100) * weights.blinkRate
+        let jitterScore = jitter * weights.jitter
+        let frownScore = frown * weights.frown
 
-        let mouthScore = mouth * mouthWeight
-        let blinkScore = (min(blinkPM, 60) / 60.0 * 100) * blinkWeight
-        let jitterScore = jitter * jitterWeight
+        let totalScore = min(max(mouthScore + blinkScore + jitterScore + frownScore, 0), 100)
 
-        let totalScore = min(max(mouthScore + blinkScore + jitterScore, 0), 100)
-
-        Logger.log(String(format: "Stress score components -> Mouth: %.2f, Blink: %.2f, Jitter: %.2f. Final Score: %.2f", mouthScore, blinkScore, jitterScore, totalScore))
+        Logger.log(String(format: "Stress Score Components -> Mouth: %.1f, Blink: %.1f, Jitter: %.1f, Frown: %.1f. Final Score: %.1f", mouthScore, blinkScore, jitterScore, frownScore, totalScore))
 
         return totalScore
     }

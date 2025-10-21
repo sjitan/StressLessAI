@@ -29,7 +29,6 @@ final class VisionProcessor {
             DispatchQueue.main.async { FaceBoxOverlayState.shared.box = .null }
             return
         }
-        Logger.log("Face detected at \(first.boundingBox).")
 
         let vb = first.boundingBox
         let meta = CGRect(x: vb.origin.x, y: 1 - vb.origin.y - vb.size.height, width: vb.size.width, height: vb.size.height)
@@ -47,10 +46,12 @@ final class VisionProcessor {
             Logger.log("No face landmarks detected.", level: .warning)
             return
         }
-        Logger.log("Face landmarks detected.")
 
         let LE = L.leftEye?.pointsInImage(imageSize: imgSize) ?? []
         let RE = L.rightEye?.pointsInImage(imageSize: imgSize) ?? []
+        let LEB = L.leftEyebrow?.pointsInImage(imageSize: imgSize) ?? []
+        let REB = L.rightEyebrow?.pointsInImage(imageSize: imgSize) ?? []
+        let nose = L.nose?.pointsInImage(imageSize: imgSize) ?? []
         let inner = L.innerLips?.pointsInImage(imageSize: imgSize) ?? []
         let outer = L.outerLips?.pointsInImage(imageSize: imgSize) ?? []
         let mouthPts = inner.isEmpty ? outer : inner
@@ -67,18 +68,48 @@ final class VisionProcessor {
 
         let mouth = mouthOpen(mouthPts)
         let jit = jitter(cur: first.boundingBox, prev: lastBox, img: imgSize)
+        let frown = frownAmount(leftEyebrow: LEB, rightEyebrow: REB, nose: nose)
         lastBox = first.boundingBox
 
-        Logger.log(String(format: "EAR: %.2f, Mouth: %.2f, Jitter: %.2f, Blinks/Min: %.1f", ear, mouth, jit, blinkPM))
+        let stress = StressEngine.shared.score(blinkPM: blinkPM, mouth: mouth, jitter: jit, frown: frown)
 
-        let stress = StressEngine.shared.score(blinkPM: blinkPM, mouth: mouth, jitter: jit)
-        StressEngine.shared.handle(stress: stress, ts: ts)
+        let newTelemetry = Telemetry(
+            sessionId: 0, // Session ID will be set by DataLayer
+            timestamp: Date(timeIntervalSince1970: ts),
+            blinkPM: blinkPM,
+            mouthOpen: mouth,
+            jitter: jit,
+            frown: frown,
+            stress: stress
+        )
 
-        Logger.log("Calculated stress score: \(stress)")
-
-        DispatchQueue.main.async {
-            TelemetryStore.shared.push(FaceTelemetry(ts: ts, blinkPM: blinkPM, mouthOpen: mouth, jitter: jit, stress: stress, box: first.boundingBox))
+        Task {
+            await DataLayer.shared.insertTelemetry(newTelemetry)
         }
+
+        // Push to UI Store
+        DispatchQueue.main.async {
+            // Note: This is an older data model. We'll deprecate it in a future step.
+            TelemetryStore.shared.push(FaceTelemetry(ts: ts, blinkPM: blinkPM, mouthOpen: mouth, jitter: jit, frown: frown, stress: stress, box: first.boundingBox))
+        }
+    }
+
+    private func frownAmount(leftEyebrow: [CGPoint], rightEyebrow: [CGPoint], nose: [CGPoint]) -> Double {
+        guard let leftInner = leftEyebrow.last,
+              let rightInner = rightEyebrow.first,
+              let noseBridge = nose.first else {
+            return 0.0
+        }
+
+        let eyebrowCenter = (leftInner.y + rightInner.y) / 2.0
+        let verticalDistance = eyebrowCenter - noseBridge.y
+
+        // Normalize the distance. These values are heuristic and may need tuning.
+        let minFrownDist: CGFloat = 8.0
+        let maxFrownDist: CGFloat = 20.0
+        let frownRatio = (verticalDistance - minFrownDist) / (maxFrownDist - minFrownDist)
+
+        return min(max(Double(frownRatio) * 100.0, 0), 100)
     }
 
     private func eyeEAR(_ pts: [CGPoint]) -> Double {
