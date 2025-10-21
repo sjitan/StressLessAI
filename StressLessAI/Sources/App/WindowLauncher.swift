@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-enum WindowKind { case telemetry, dashboard }
+enum WindowKind { case telemetry, dashboard, report }
 
 enum WindowLauncher {
     @MainActor
@@ -10,6 +10,7 @@ enum WindowLauncher {
             switch kind {
             case .telemetry: return TelemetryView()
             case .dashboard: return DashboardView()
+            case .report: return ReportView()
             }
         }()
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 960, height: 600),

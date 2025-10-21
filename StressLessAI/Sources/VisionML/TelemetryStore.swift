@@ -25,6 +25,9 @@ final class TelemetryStore: ObservableObject {
         if sessionStart == nil { sessionStart = Date(); firstTS = m.ts }
         latest = m
         samples.append(m)
+
+        GlowState.shared.stressLevel = m.stress
+
         Task {
             await DataLayer.shared.insert(telemetry: m)
             if await PredictionEngine.shared.process(latestStress: m.stress) {

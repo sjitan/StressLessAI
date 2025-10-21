@@ -9,20 +9,41 @@ final class StressEngine {
 
     func score(blinkPM: Double, mouth: Double, jitter: Double) -> Double {
         // simple weighted sum with clamp
-        let s = min(max( (mouth*0.45) + (min(blinkPM,60)/60.0*100*0.25) + (jitter*0.30), 0), 100)
-        return s
+        let mouthWeight = 0.45
+        let blinkWeight = 0.25
+        let jitterWeight = 0.30
+
+        let mouthScore = mouth * mouthWeight
+        let blinkScore = (min(blinkPM, 60) / 60.0 * 100) * blinkWeight
+        let jitterScore = jitter * jitterWeight
+
+        let totalScore = min(max(mouthScore + blinkScore + jitterScore, 0), 100)
+
+        Logger.log(String(format: "Stress score components -> Mouth: %.2f, Blink: %.2f, Jitter: %.2f. Final Score: %.2f", mouthScore, blinkScore, jitterScore, totalScore))
+
+        return totalScore
     }
 
     func handle(stress: Double, ts: TimeInterval) {
         if stress >= threshold {
-            if aboveSince == nil { aboveSince = ts }
-            if let t0 = aboveSince, ts - t0 >= sustain, ts - lastNotifyAt > 300 {
-                lastNotifyAt = ts
-                NotificationsManager.shared.notifyTakeABreak()
-                aboveSince = nil
+            if aboveSince == nil {
+                aboveSince = ts
+                Logger.log("Stress threshold of \(threshold) exceeded. Starting timer.")
+            }
+            if let t0 = aboveSince, ts - t0 >= sustain {
+                Logger.log("Stress has been sustained above threshold for \(sustain) seconds.")
+                if ts - lastNotifyAt > 300 {
+                    Logger.log("Triggering 'Take a Break' notification.")
+                    lastNotifyAt = ts
+                    NotificationsManager.shared.notifyTakeABreak()
+                    aboveSince = nil // Reset after notification
+                }
             }
         } else {
-            aboveSince = nil
+            if aboveSince != nil {
+                Logger.log("Stress level dropped below threshold. Resetting timer.")
+                aboveSince = nil
+            }
         }
     }
 }

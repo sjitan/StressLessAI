@@ -18,19 +18,36 @@ final class VisionProcessor {
         let imgSize = CGSize(width: w, height: h)
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: exif, options: [:])
 
-        do { try handler.perform([rectReq]) } catch { return }
+        do {
+            try handler.perform([rectReq])
+        } catch {
+            Logger.log("Failed to perform face rectangle request: \(error.localizedDescription)", level: .error)
+            return
+        }
+
         guard let first = rectReq.results?.first else {
             DispatchQueue.main.async { FaceBoxOverlayState.shared.box = .null }
             return
         }
+        Logger.log("Face detected at \(first.boundingBox).")
 
         let vb = first.boundingBox
         let meta = CGRect(x: vb.origin.x, y: 1 - vb.origin.y - vb.size.height, width: vb.size.width, height: vb.size.height)
         DispatchQueue.main.async { FaceBoxOverlayState.shared.box = meta }
 
         lmReq.inputFaceObservations = [first]
-        do { try handler.perform([lmReq]) } catch { return }
-        guard let face = lmReq.results?.first, let L = face.landmarks else { return }
+        do {
+            try handler.perform([lmReq])
+        } catch {
+            Logger.log("Failed to perform face landmarks request: \(error.localizedDescription)", level: .error)
+            return
+        }
+
+        guard let face = lmReq.results?.first, let L = face.landmarks else {
+            Logger.log("No face landmarks detected.", level: .warning)
+            return
+        }
+        Logger.log("Face landmarks detected.")
 
         let LE = L.leftEye?.pointsInImage(imageSize: imgSize) ?? []
         let RE = L.rightEye?.pointsInImage(imageSize: imgSize) ?? []
@@ -52,8 +69,12 @@ final class VisionProcessor {
         let jit = jitter(cur: first.boundingBox, prev: lastBox, img: imgSize)
         lastBox = first.boundingBox
 
+        Logger.log(String(format: "EAR: %.2f, Mouth: %.2f, Jitter: %.2f, Blinks/Min: %.1f", ear, mouth, jit, blinkPM))
+
         let stress = StressEngine.shared.score(blinkPM: blinkPM, mouth: mouth, jitter: jit)
         StressEngine.shared.handle(stress: stress, ts: ts)
+
+        Logger.log("Calculated stress score: \(stress)")
 
         DispatchQueue.main.async {
             TelemetryStore.shared.push(FaceTelemetry(ts: ts, blinkPM: blinkPM, mouthOpen: mouth, jitter: jit, stress: stress, box: first.boundingBox))

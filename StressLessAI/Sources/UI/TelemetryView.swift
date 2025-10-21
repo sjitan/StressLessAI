@@ -32,7 +32,8 @@ final class PreviewHostView: NSView {
         self.preview = preview
         super.init(frame: .zero)
         wantsLayer = true
-        if preview.superlayer == nil { layer?.addSublayer(preview) }
+        preview.removeFromSuperlayer()
+        layer?.addSublayer(preview)
     }
     required init?(coder: NSCoder) { fatalError() }
     override func layout() {

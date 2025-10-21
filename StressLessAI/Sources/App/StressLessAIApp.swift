@@ -12,8 +12,14 @@ struct StressLessAIApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var glowWindow: GlowWindow?
+
     func applicationDidFinishLaunching(_ note: Notification) {
         Logger.log("Application finished launching.")
+
+        glowWindow = GlowWindow()
+        glowWindow?.orderFrontRegardless()
+        Logger.log("Glow window created and displayed.")
 
         // Ensure the app can draw over other apps
         NSApp.setActivationPolicy(.accessory)
@@ -51,6 +57,7 @@ struct MenuContent: View {
         VStack(alignment: .leading, spacing: 8) {
             Button("Open Telemetry (⌘T)") { WindowLauncher.open(.telemetry) }.keyboardShortcut("t")
             Button("View Dashboard (⌘D)") { WindowLauncher.open(.dashboard) }.keyboardShortcut("d")
+            Button("View Reports (⌘R)") { WindowLauncher.open(.report) }.keyboardShortcut("r")
             Divider()
             Button("Quit (⌘Q)") { NSApp.terminate(nil) }.keyboardShortcut("q")
         }
