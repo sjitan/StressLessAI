@@ -9,7 +9,7 @@ RESDIR="$APPDIR/Contents/Resources"
 rm -rf "$APPDIR"
 mkdir -p "$BINDIR" "$RESDIR"
 
-SRCS="$(find "$ROOT/Sources" -type f -name '*.swift' | sort)"
+SRCS="$(find "$ROOT/StressLessAI/Sources" -type f -name '*.swift' | sort)"
 
 swiftc -O -g $SRCS \
   -o "$BINDIR/$APP" \

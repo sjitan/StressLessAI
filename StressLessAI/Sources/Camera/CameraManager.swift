@@ -61,7 +61,7 @@ final class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     }
     func stop(){ if session.isRunning { session.stopRunning() } }
 
-    func captureOutput(_ output: AVCaptureOutput, didOutput sb: CMSampleBuffer, from: AVCaptureConnection) {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sb: CMSampleBuffer, from: AVCaptureConnection) {
         guard let pb = CMSampleBufferGetImageBuffer(sb) else { return }
         let ts = CMSampleBufferGetPresentationTimeStamp(sb)
         VisionProcessor.shared.process(pixelBuffer: pb, at: ts)
